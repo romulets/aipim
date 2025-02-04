@@ -27,11 +27,7 @@ enrichCtx.related = new TreeSet();
 enrichCtx.target = new TreeSet();
 enrichCtx.actor = field("%%DEFAULT_ACTOR%%").get(null); // default actor value
 
-addField(enrichCtx.related, "json.userIdentity.accessKeyId");
-addField(enrichCtx.related, "json.userIdentity.arn");
-addField(enrichCtx.related, "json.userIdentity.userName");
-addField(enrichCtx.related, "json.userIdentity.sessionContext.sessionIssuer.arn");
-addField(enrichCtx.related, "json.userIdentity.sessionContext.sessionIssuer.userName");
+%%DEFAULT_RELATED_ENTITIES%%
 field("json.resources").get(new ArrayList()).stream().forEach(f -> addValue(enrichCtx.related, f.ARN));
 
 String eventSource = field("json.eventSource").get(null);

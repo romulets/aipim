@@ -18,6 +18,14 @@ func TestToString(t *testing.T) {
 			outFile:   "basic.painless",
 			in: cloudtrailLogMapping{
 				defaultActor: "json.userIdentity.arn",
+				defaultRelatedEntities: []string{
+					"json.userIdentity.accessKeyId",
+					"json.userIdentity.arn",
+					"json.userIdentity.userName",
+					"json.userIdentity.sessionContext.sessionIssuer.arn",
+					"json.userIdentity.sessionContext.sessionIssuer.userName",
+				},
+
 				sources: []mappedSource{
 					{
 						sourceName: "iam",

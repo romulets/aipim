@@ -8,7 +8,6 @@ import (
 type cloudtrailLogMapping struct {
 	defaultRelatedEntities []string
 	defaultActor           string
-	defaultTarget          []string
 	sources                []mappedSource
 }
 
@@ -40,15 +39,16 @@ var addFieldTemplate string
 var ifEventTemplate string
 
 const (
-	functionDefPH  = "%%FUNCTIONS_DEFINITIONS%%"
-	functionCallPH = "%%FUNCTIONS_CALLS%%"
-	sourceNamePH   = "%%SOURCE_NAME%%"
-	functionBodyPH = "%%FUNCTION_BODY%%"
-	fieldNamePH    = "%%FIELD_NAME%%"
-	contextPH      = "%%CONTEXT%%"
-	eventNamePH    = "%%EVENT_NAME%%"
-	ifBodyPH       = "%%IF_BODY%%"
-	defaultActorPH = "%%DEFAULT_ACTOR%%"
+	functionDefPH            = "%%FUNCTIONS_DEFINITIONS%%"
+	functionCallPH           = "%%FUNCTIONS_CALLS%%"
+	sourceNamePH             = "%%SOURCE_NAME%%"
+	functionBodyPH           = "%%FUNCTION_BODY%%"
+	fieldNamePH              = "%%FIELD_NAME%%"
+	contextPH                = "%%CONTEXT%%"
+	eventNamePH              = "%%EVENT_NAME%%"
+	ifBodyPH                 = "%%IF_BODY%%"
+	defaultActorPH           = "%%DEFAULT_ACTOR%%"
+	defaultRelatedEntitiesPH = "%%DEFAULT_RELATED_ENTITIES%%"
 
 	contextRelated = "related"
 	contextTarget  = "target"
@@ -67,6 +67,13 @@ func (m *cloudtrailLogMapping) toString() string {
 	script := strings.Replace(scriptTemplate, functionDefPH, strings.Join(functions, "\n\n"), 1)
 	script = strings.Replace(script, functionCallPH, strings.Join(calls, "\n"), 1)
 	script = strings.Replace(script, defaultActorPH, m.defaultActor, 1)
+
+	defaultRelated := make([]string, 0, len(m.defaultRelatedEntities))
+	for _, fieldName := range m.defaultRelatedEntities {
+		defaultRelated = append(defaultRelated, addFieldCall(contextTarget, fieldName))
+	}
+
+	script = strings.Replace(script, defaultRelatedEntitiesPH, strings.Join(defaultRelated, "\n"), 1)
 
 	return script
 }
