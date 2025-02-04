@@ -1,0 +1,3 @@
+  if (eventName == "%%EVENT_NAME%%") {
+    %%IF_BODY%%
+  }

@@ -1,0 +1,8 @@
+// ----------------- %%SOURCE_NAME%% Events -----------------
+void enrich_%%SOURCE_NAME%%(def enrichCtx, def eventSource, def eventName) {
+  if (eventSource != "%%SOURCE_NAME%%.amazonaws.com") {
+    return;
+  }
+
+  %%FUNCTION_BODY%%
+}
