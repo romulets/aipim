@@ -25,7 +25,7 @@ boolean addValue(Set entities, String value) {
 Map enrichCtx = [:];
 enrichCtx.related = new TreeSet();
 enrichCtx.target = new TreeSet();
-enrichCtx.actor = field("json.userIdentity.arn").get(null); // default actor value
+enrichCtx.actor = field("%%DEFAULT_ACTOR%%").get(null); // default actor value
 
 addField(enrichCtx.related, "json.userIdentity.accessKeyId");
 addField(enrichCtx.related, "json.userIdentity.arn");

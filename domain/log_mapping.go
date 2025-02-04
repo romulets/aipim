@@ -1,7 +1,7 @@
 package domain
 
 import (
-	_ "embed"
+	_ "embed" // embed templates
 	"strings"
 )
 
@@ -48,6 +48,7 @@ const (
 	contextPH      = "%%CONTEXT%%"
 	eventNamePH    = "%%EVENT_NAME%%"
 	ifBodyPH       = "%%IF_BODY%%"
+	defaultActorPH = "%%DEFAULT_ACTOR%%"
 
 	contextRelated = "related"
 	contextTarget  = "target"
@@ -65,6 +66,7 @@ func (m *cloudtrailLogMapping) toString() string {
 
 	script := strings.Replace(scriptTemplate, functionDefPH, strings.Join(functions, "\n\n"), 1)
 	script = strings.Replace(script, functionCallPH, strings.Join(calls, "\n"), 1)
+	script = strings.Replace(script, defaultActorPH, m.defaultActor, 1)
 
 	return script
 }

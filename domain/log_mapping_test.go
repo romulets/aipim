@@ -17,6 +17,7 @@ func TestToString(t *testing.T) {
 			overwrite: false,
 			outFile:   "basic.painless",
 			in: cloudtrailLogMapping{
+				defaultActor: "json.userIdentity.arn",
 				sources: []mappedSource{
 					{
 						sourceName: "iam",
