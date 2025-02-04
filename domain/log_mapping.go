@@ -81,23 +81,25 @@ func (m *cloudtrailLogMapping) toString() string {
 // Returns function definition and call
 func (m *mappedSource) buildFn() (string, string) {
 	function := strings.Replace(functionTemplate, sourceNamePH, m.sourceName, 3)
-	lines := make([]string, 0, len(m.relatedEntityFields)+len(m.events)+1)
+	related := make([]string, 0, len(m.relatedEntityFields))
 
 	for idx, fieldName := range m.relatedEntityFields {
 		ident := ""
 		if idx > 0 {
 			ident = "  "
 		}
-		lines = append(lines, ident+addFieldCall(contextRelated, fieldName))
+		related = append(related, ident+addFieldCall(contextRelated, fieldName))
 	}
 
-	lines = append(lines, "  ")
+	events := make([]string, 0, len(m.events))
 
 	for _, event := range m.events {
-		lines = append(lines, event.buildIfCase())
+		events = append(events, event.buildIfCase())
 	}
 
-	body := strings.Join(lines, "\n")
+	body := strings.Join(related, "\n")
+	body += "\n  \n  "
+	body += strings.ReplaceAll(strings.Join(events, " else "), "\n", "\n  ")
 	function = strings.Replace(function, functionBodyPH, body, 1)
 
 	call := strings.Replace(functionCallTemplate, sourceNamePH, m.sourceName, 1)
@@ -113,7 +115,8 @@ func (e *mappedEvent) buildIfCase() string {
 		targetFields = append(targetFields, addFieldCall(contextTarget, fieldName))
 	}
 
-	return strings.Replace(ifCase, ifBodyPH, strings.Join(targetFields, "\n    "), 1)
+	text := strings.ReplaceAll(strings.Join(targetFields, "\n"), "\n", "\n  ")
+	return strings.Replace(ifCase, ifBodyPH, text, 1)
 }
 
 func addFieldCall(context string, fieldName string) string {
