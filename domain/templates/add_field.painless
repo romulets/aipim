@@ -1,1 +1,1 @@
-addField(enrichCtx.related, "json.requestParameters.userName");
+addField(enrichCtx.related, "%%FIELD_NAME%%");

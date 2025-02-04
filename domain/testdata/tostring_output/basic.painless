@@ -26,7 +26,7 @@ void enrich_iam(def enrichCtx, def eventSource, def eventName) {
   addField(enrichCtx.related, "json.requestParameters.userName");
   addField(enrichCtx.related, "json.requestParameters.roleName");
   
-    if (eventName == "CreateUser") {
+  if (eventName == "CreateUser") {
     addField(enrichCtx.related, "json.requestParameters.userName");
     addField(enrichCtx.related, "json.requestParameters.roleName");
   }

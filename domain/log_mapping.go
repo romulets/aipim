@@ -74,17 +74,21 @@ func (m *mappedSource) buildFn() (string, string) {
 	function := strings.Replace(functionTemplate, sourceNamePH, m.sourceName, 3)
 	lines := make([]string, 0, len(m.relatedEntityFields)+len(m.events)+1)
 
-	for _, fieldName := range m.relatedEntityFields {
-		lines = append(lines, addFieldCall(contextRelated, fieldName))
+	for idx, fieldName := range m.relatedEntityFields {
+		ident := ""
+		if idx > 0 {
+			ident = "  "
+		}
+		lines = append(lines, ident+addFieldCall(contextRelated, fieldName))
 	}
 
-	lines = append(lines, "")
+	lines = append(lines, "  ")
 
 	for _, event := range m.events {
 		lines = append(lines, event.buildIfCase())
 	}
 
-	body := strings.Join(lines, "\n  ")
+	body := strings.Join(lines, "\n")
 	function = strings.Replace(function, functionBodyPH, body, 1)
 
 	call := strings.Replace(functionCallTemplate, sourceNamePH, m.sourceName, 1)
