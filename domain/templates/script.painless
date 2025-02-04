@@ -28,7 +28,6 @@ enrichCtx.target = new TreeSet();
 enrichCtx.actor = field("%%DEFAULT_ACTOR%%").get(null); // default actor value
 
 %%DEFAULT_RELATED_ENTITIES%%
-field("json.resources").get(new ArrayList()).stream().forEach(f -> addValue(enrichCtx.related, f.ARN));
 
 String eventSource = field("json.eventSource").get(null);
 String eventName = field("json.eventName").get(null);

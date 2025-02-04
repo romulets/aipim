@@ -24,6 +24,7 @@ func TestToString(t *testing.T) {
 					"json.userIdentity.userName",
 					"json.userIdentity.sessionContext.sessionIssuer.arn",
 					"json.userIdentity.sessionContext.sessionIssuer.userName",
+					"json.resources[].ARN",
 				},
 
 				sources: []mappedSource{

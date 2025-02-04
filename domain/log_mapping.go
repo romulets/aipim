@@ -70,7 +70,7 @@ func (m *cloudtrailLogMapping) toString() string {
 
 	defaultRelated := make([]string, 0, len(m.defaultRelatedEntities))
 	for _, fieldName := range m.defaultRelatedEntities {
-		defaultRelated = append(defaultRelated, addFieldCall(contextTarget, fieldName))
+		defaultRelated = append(defaultRelated, addFieldCall(contextRelated, fieldName))
 	}
 
 	script = strings.Replace(script, defaultRelatedEntitiesPH, strings.Join(defaultRelated, "\n"), 1)
@@ -117,6 +117,26 @@ func (e *mappedEvent) buildIfCase() string {
 }
 
 func addFieldCall(context string, fieldName string) string {
+	if strings.Contains(fieldName, "[]") {
+		return addArrayFieldCall(context, fieldName)
+	}
 	addField := strings.Replace(addFieldTemplate, fieldNamePH, fieldName, 1)
 	return strings.Replace(addField, contextPH, context, 1)
+}
+
+// Can't handle multilevel arrays
+func addArrayFieldCall(context string, fieldName string) string {
+	chunks := strings.Split(fieldName, "[]")
+
+	b := strings.Builder{}
+	b.WriteString(`field("`)
+	b.WriteString(chunks[0])
+	b.WriteString(`").get(new ArrayList())
+  .stream().forEach(f -> addValue(enrichCtx.`)
+	b.WriteString(context)
+	b.WriteString(`, f`)
+	b.WriteString(chunks[1])
+	b.WriteString(`));`)
+
+	return b.String()
 }
