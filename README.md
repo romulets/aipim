@@ -3,14 +3,13 @@
 
 ## Todo
 
-- [ ] From data structure to painless
-    - Handle multiple array levels
-- [ ] From data painless to da structure
+- [x] From data structure to painless
+- [ ] From data painless to da structure - in dev @kubasobon
 - [ ] Create API
-- [ ] Create Front End
+- [ ] Create Front End - in dev @romulets
 - [ ] Add Testing capabilities
 
-## Know problems
+## Known problems
 
 - Arrays
     - Multiple array levels is complex to parse/convert in painless
