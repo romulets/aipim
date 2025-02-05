@@ -8,6 +8,10 @@
 
   --contrast-background: #6D1F1F;
   --contrast-foreground: #EEE;
+
+  --white: #FFF;
+
+  --collapse-speed: 200ms
 }
 
 
@@ -17,11 +21,85 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.header, .footer {
- background: var(--contrast-background); 
- color: var(--contrast-foreground); 
+.header,
+.footer {
+  background: var(--contrast-background);
+  color: var(--contrast-foreground);
 }
 
-.footer {
+.collapse-body {
+  transition-property: padding;
+  transition-duration: var(--collapse-speed);
+  overflow: hidden;
+}
+
+.collapse-body-closed {
+  height: 0px;
+  padding: 0px 12px;
+}
+
+.collapse-body-open {
+  height: auto;
+  padding: 12px 12px;
+}
+
+.collapse-arrow {
+  overflow: hidden;
+  transition-duration: var(--collapse-speed);
+  transition-property: transform;
+}
+
+.collapse-arrow-open {
+  transform: rotate(90deg);
+}
+
+.collapse-arrow-closed {
+  transform: rotate(0deg);
+}
+
+.form-section {
+  background: var(--white);
+}
+
+.text-input {
+  border: 1px solid var(--contrast-background);
+}
+
+.form-label {
   font-weight: bold;
+  color: var(--contrast-background);
+}
+
+.inc-list {
+  border: 1px solid var(--contrast-background);
+}
+
+.inc-list .title {
+  position: relative;
+  bottom: 1.8em;
+  background: white;
+  padding: 0.2em;
+  font-weight: bold;
+  color: var(--contrast-background);
+}
+
+.inc-list .inc-list-btn {
+  padding: 0.3em;
+  font-weight: bold;
+  font-size: 0.8em;
+  background: var(--contrast-background);
+  color: var(--contrast-foreground);
+  border: 1px solid var(--white);
+}
+
+.inc-list .add-btn {
+  position: relative;
+  bottom: 2.3em;
+  left: calc(100% - 18em);
+}
+
+.inc-list .inc-list-btn:hover {
+  color: var(--contrast-background);
+  background: var(--contrast-foreground);
+  border: 1px solid var(--contrast-background);
 }
