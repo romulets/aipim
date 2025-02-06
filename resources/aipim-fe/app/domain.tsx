@@ -8,6 +8,13 @@ export class MappedSource {
     sourceName: string = "";
     events: Array<MappedEvent> = [];
     relatedEntityFields: Array<string> = [];
+
+    constructor(sourceName?: string) {
+        if (!!sourceName) {
+            this.sourceName = sourceName!
+        }
+        
+    }
 }
 
 export class MappedEvent {
