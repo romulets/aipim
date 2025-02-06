@@ -90,7 +90,7 @@ export default function Home() {
                 <button className="flex-2 main-btn add-btn" onClick={() => updateCloudtrailMapping({ defaultRelatedEntities: [...cloudtrailMapping.defaultRelatedEntities, ""] } as CloudtrailLogMapping)}>+ Add Related Entity</button>
               </div>
 
-              <div className="inc-list p-4 m-2 mt-5">
+              <div className="inc-list p-4 pr-2 m-2 mt-5 mr-0">
                 {cloudtrailMapping.defaultRelatedEntities.length == 0
                   ? <p>No default related entities</p>
 
@@ -166,7 +166,7 @@ export default function Home() {
                   </button>
 
                   <div className="flex-3 content-center mr-1">
-                    <button className="main-btn sm" onClick={removeSource}>- Remove</button>
+                    <button className="main-btn sm" onClick={removeSource}>- Remove Source</button>
                   </div>
                 </div>
 
@@ -189,7 +189,7 @@ export default function Home() {
                     <button className="flex-2 main-btn add-btn" onClick={() => updateSource({ relatedEntityFields: [...source.relatedEntityFields, ""] } as MappedSource)}>+ Add Related Entity</button>
                   </div>
 
-                  <div className="inc-list p-4 m-2 mt-5">
+                  <div className="inc-list p-4 pr-2 m-2 mt-5 mr-0">
 
                     {source.relatedEntityFields.length == 0
                       ? <p>No specific related entities</p>
@@ -269,7 +269,7 @@ export default function Home() {
                             <div className="flex-1"><label className="title">Targets</label></div>
                             <button className="flex-2 main-btn add-btn" onClick={() => updateEvent({ targetFields: [...event.targetFields, ""] } as MappedEvent)}>+ Add Target</button>
                           </div>
-                          <div className="inc-list p-4 m-2 mt-5">
+                          <div className="inc-list p-4 pr-2 m-2 mt-5 mr-0">
 
                             {event.targetFields.length == 0
                               ? <p>No targets</p>

@@ -75,17 +75,6 @@ body {
   border-radius: 3px;
 }
 
-.inc-list .text-input {
-  width: 95%;
-  margin-bottom: 0.5em;
-}
-
-.inc-list .remove-btn {
-  width: 4%;
-  padding: 0;
-  margin-left: 0.2em;
-}
-
 .form-label {
   font-weight: bold;
   color: var(--contrast-background);
@@ -107,6 +96,17 @@ body {
   padding: 0.2em;
   font-weight: bold;
   color: var(--contrast-background);
+}
+
+.inc-list .text-input {
+  width: 95%;
+  margin-bottom: 0.5em;
+}
+
+.inc-list .remove-btn {
+  width: 4%;
+  padding: 0;
+  margin-left: 0.2em;
 }
 
 .main-btn {
