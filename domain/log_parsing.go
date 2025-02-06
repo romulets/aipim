@@ -12,7 +12,7 @@ var (
 	eventNamePattern  = regexp.MustCompile(`if \(eventName == "(.+)"\)`)
 	actorPattern      = regexp.MustCompile(`enrichCtx.actor = field\("(.+)"\)`)
 	fieldPattern      = regexp.MustCompile(`field\("(.+)"\)`)
-	forEachPattern    = regexp.MustCompile(`f -> addValue\(.+, f\.(.+)\)`)
+	forEachPattern    = regexp.MustCompile(`f -> addValue\(.+, f\.(.+)\)\);`)
 )
 
 func (clm *cloudtrailLogMapping) scan(painless string) {
