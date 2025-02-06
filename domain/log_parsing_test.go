@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-//go:embed testdata/tostring_output/generated_basic.painless
+//go:embed testdata/tostring_output/generated_complex.painless
 var testSimplePainless string
 
 func TestSimpleParser(t *testing.T) {

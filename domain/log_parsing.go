@@ -7,8 +7,11 @@ import (
 )
 
 var sourceNamePattern = regexp.MustCompile(`// -+ (\w+) Events -+`)
-var addFieldPattern = regexp.MustCompile(`\s+addField\(.+, "(.+)"\)`)
+var addFieldPattern = regexp.MustCompile(`\s*addField\(.+, "(.+)"\)`)
 var eventNamePattern = regexp.MustCompile(`if \(eventName == "(.+)"\)`)
+var actorPattern = regexp.MustCompile(`enrichCtx.actor = field\("(.+)"\)`)
+var fieldPattern = regexp.MustCompile(`field\("(.+)"\)`)
+var forEachPattern = regexp.MustCompile(`f -> addValue\(.+, f\.(.+)\)`)
 
 func (ms *mappedSource) addRelatedEntityField(f string) {
 	ms.relatedEntityFields = append(ms.relatedEntityFields, f)
@@ -50,15 +53,9 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 
 		if inDefinitions {
 			if strings.Contains(line, " Events -") {
-				matches := sourceNamePattern.FindStringSubmatch(line)
-				if len(matches) != 2 {
-					panic(fmt.Sprintf(
-						"! Should find two elements in %d\n%s\n%s",
-						i, line, sourceNamePattern,
-					))
-				}
+				x := mustMatch(sourceNamePattern, line, 1)
 				source = &mappedSource{
-					sourceName:          matches[1],
+					sourceName:          x,
 					events:              []mappedEvent{},
 					relatedEntityFields: []string{},
 				}
@@ -68,14 +65,8 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 			}
 			if strings.HasPrefix(line, "  addField") {
 				// parse line and add to related on source-lvl
-				matches := addFieldPattern.FindStringSubmatch(line)
-				if len(matches) != 2 {
-					panic(fmt.Sprintf(
-						"! Should find two elements in %d\n%s\n%s",
-						i, line, addFieldPattern,
-					))
-				}
-				source.relatedEntityFields = append(source.relatedEntityFields, matches[1])
+				x := mustMatch(addFieldPattern, line, 1)
+				source.relatedEntityFields = append(source.relatedEntityFields, x)
 				i += 1
 				continue
 			}
@@ -86,15 +77,9 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 			}
 			if strings.Contains(line, "eventName ==") {
 				// go to eventScope
-				matches := eventNamePattern.FindStringSubmatch(line)
-				if len(matches) != 2 {
-					panic(fmt.Sprintf(
-						"! Should find two elements in %d\n%s\n%s",
-						i, line, addFieldPattern,
-					))
-				}
+				x := mustMatch(eventNamePattern, line, 1)
 				event = &mappedEvent{
-					eventName:    matches[1],
+					eventName:    x,
 					targetFields: []string{},
 					actorField:   nil,
 				}
@@ -104,15 +89,19 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 			}
 			if strings.HasPrefix(line, "    addField") {
 				// parse line and add to related on event-lvl
-				matches := addFieldPattern.FindStringSubmatch(line)
-				if len(matches) != 2 {
-					panic(fmt.Sprintf(
-						"! Should find two elements in %d\n%s\n%s",
-						i, line, addFieldPattern,
-					))
-				}
-				event.targetFields = append(event.targetFields, matches[1])
+				x := mustMatch(addFieldPattern, line, 1)
+				event.targetFields = append(event.targetFields, x)
 				i += 1
+				continue
+			}
+			if strings.Contains(line, "ArrayList()") {
+				prefix := mustMatch(fieldPattern, line, 1)
+				suffix := mustMatch(forEachPattern, lines[i+1], 1)
+				event.targetFields = append(
+					event.targetFields,
+					fmt.Sprintf("%s[].%s", prefix, suffix),
+				)
+				i += 2
 				continue
 			}
 			if strings.HasPrefix(line, "}") {
@@ -122,10 +111,42 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 				i += 1
 				continue
 			}
+		} else if inSetup {
+			if strings.HasPrefix(line, "enrichCtx.actor =") {
+				clm.defaultActor = mustMatch(actorPattern, line, 1)
+				i += 1
+				continue
+			}
+			if strings.HasPrefix(line, "addField(") {
+				x := mustMatch(addFieldPattern, line, 1)
+				clm.defaultRelatedEntities = append(clm.defaultRelatedEntities, x)
+				i += 1
+				continue
+			}
+			if strings.Contains(line, "ArrayList()") {
+				prefix := mustMatch(fieldPattern, line, 1)
+				suffix := mustMatch(forEachPattern, lines[i+1], 1)
+				clm.defaultRelatedEntities = append(
+					clm.defaultRelatedEntities,
+					fmt.Sprintf("%s[].%s", prefix, suffix),
+				)
+				i += 2
+				continue
+			}
 		}
 		i += 1
 		continue
 	}
-
 	fmt.Println("DBG")
+}
+
+func mustMatch(pattern *regexp.Regexp, s string, match int) string {
+	matches := pattern.FindStringSubmatch(s)
+	if len(matches) <= match {
+		panic(fmt.Sprintf(
+			"Could not match %q with %q (group %d)",
+			s, pattern, match,
+		))
+	}
+	return matches[match]
 }
