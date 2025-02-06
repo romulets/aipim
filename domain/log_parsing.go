@@ -122,9 +122,10 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 				i += 1
 				continue
 			}
-		} else {
-			i += 1
-			continue
 		}
+		i += 1
+		continue
 	}
+
+	fmt.Println("DBG")
 }
