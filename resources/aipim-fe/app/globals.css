@@ -19,6 +19,7 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8rem;
 }
 
 .header,
@@ -63,7 +64,7 @@ body {
   border: 1px solid var(--contrast-background);
 }
 
-.form-section.contrast{
+.form-section.contrast {
   background: var(--contrast-background);
   border: 1px solid var(--white);
   color: var(--white);
@@ -72,6 +73,17 @@ body {
 .text-input {
   border: 1px solid var(--contrast-background);
   border-radius: 3px;
+}
+
+.inc-list .text-input {
+  width: 95%;
+  margin-bottom: 0.5em;
+}
+
+.inc-list .remove-btn {
+  width: 4%;
+  padding: 0;
+  margin-left: 0.2em;
 }
 
 .form-label {
@@ -84,9 +96,13 @@ body {
   border-radius: 3px;
 }
 
-.inc-list .title {
+.inc-list-header {
   position: relative;
-  bottom: 1.8em;
+  bottom: -2.2em;
+  padding: 0 1em;
+}
+
+.inc-list-header .title {
   background: white;
   padding: 0.2em;
   font-weight: bold;
@@ -117,8 +133,16 @@ body {
   border: 1px solid var(--contrast-background);
 }
 
-.inc-list .add-btn {
-  position: relative;
-  bottom: 2.3em;
-  left: calc(100% - 18em);
+.title-divider {
+  color: var(--contrast-background);
+  border-bottom: 1px solid var(--background);
+}
+
+.events-holder {
+  border-left: 4px solid var(--background);
+}
+
+.title-sub-divider {
+  color: var(--contrast-background);
+  border-bottom: 1px solid var(--contrast-background);
 }

@@ -3,7 +3,7 @@
 import { useState, useCallback, ChangeEvent } from "react"
 import Image from "next/image";
 import CodeEditor from '@uiw/react-textarea-code-editor';
-import { CloudtrailLogMapping, MappedSource } from "./domain"
+import { CloudtrailLogMapping, MappedSource, MappedEvent } from "./domain"
 
 class Toggles {
   default: boolean = false;
@@ -33,6 +33,12 @@ export default function Home() {
   const collapseBody = ((open: boolean) => open ? "collapse-body-open" : "collapse-body-closed")
 
   const updateCloudtrailMapping = ((newMapping: CloudtrailLogMapping) => setMapping({ ...cloudtrailMapping, ...newMapping }))
+
+  const addEventSource = () => {
+    const idx = cloudtrailMapping.sources.length // no need to decrement because we are increasing anyway
+    updateCloudtrailMapping({ sources: [...cloudtrailMapping.sources, new MappedSource("aws_source")] } as CloudtrailLogMapping)
+    toggleSource(idx)()
+  }
 
   return (
     <div className="h-screen">
@@ -79,10 +85,12 @@ export default function Home() {
                 />
               </div>
 
-              <div className="inc-list p-4 m-2 mt-5">
-                <label className="title">Default Related Entities</label>
-                <button className="main-btn add-btn" onClick={() => updateCloudtrailMapping({ defaultRelatedEntities: [...cloudtrailMapping.defaultRelatedEntities, ""] } as CloudtrailLogMapping)}>Add +</button>
+              <div className="inc-list-header flex">
+                <div className="flex-1"><label className="title">Default Related Entities</label></div>
+                <button className="flex-2 main-btn add-btn" onClick={() => updateCloudtrailMapping({ defaultRelatedEntities: [...cloudtrailMapping.defaultRelatedEntities, ""] } as CloudtrailLogMapping)}>+ Add Related Entity</button>
+              </div>
 
+              <div className="inc-list p-4 m-2 mt-5">
                 {cloudtrailMapping.defaultRelatedEntities.length == 0
                   ? <p>No default related entities</p>
 
@@ -99,14 +107,13 @@ export default function Home() {
                       updateCloudtrailMapping({ defaultRelatedEntities: entities } as CloudtrailLogMapping)
                     }
 
-                    return (<div className="m-3" key={`default-related-${idx}`}>
-
-                      <button className="main-btn" onClick={removeEntity}>- Remove</button>
-
-                      <input className="text-input p-1 ml-5 w-5/6"
+                    return (<div className="" key={`default-related-${idx}`}>
+                      <input className="text-input p-1"
                         type="text"
                         onChange={updateEntity}
                         value={cloudtrailMapping.defaultRelatedEntities[idx]} />
+
+                      <button className="col-span-1 main-btn remove-btn" onClick={removeEntity}>-</button>
 
                     </div>)
                   })}
@@ -117,25 +124,31 @@ export default function Home() {
           <div className="form-section mb-2 p-2 flex contrast">
             <h2 className="font-bold flex-1">Event Sources</h2>
             <button
-              onClick={() => updateCloudtrailMapping({ sources: [...cloudtrailMapping.sources, new MappedSource("aws_source")] } as CloudtrailLogMapping)}
-              className="main-btn flex-3 sm">+ Add</button>
+              onClick={addEventSource}
+              className="main-btn flex-3 sm">+ Add Event Source</button>
           </div>
 
           {cloudtrailMapping.sources.map((source, idx) => {
+            const shrinkAll = toggles.sources == idx
+
             const removeSource = () => {
               const sources = [...cloudtrailMapping.sources]
               sources.splice(idx, 1)
               updateCloudtrailMapping({ sources: sources } as CloudtrailLogMapping)
 
-              if (toggles.sources == idx) {
+              if (shrinkAll) {
                 setToggles(new Toggles())
               }
             }
 
             const updateSource = (source: MappedSource) => {
               cloudtrailMapping.sources[idx] = { ...cloudtrailMapping.sources[idx], ...source }
-              console.log(source)
               updateCloudtrailMapping({ ...cloudtrailMapping })
+            }
+
+            const addEvent = () => {
+              source.events = [...cloudtrailMapping.sources[idx].events, new MappedEvent(`${source.sourceName}Event`)]
+              updateSource(source)
             }
 
             return (
@@ -162,11 +175,135 @@ export default function Home() {
                   <div className="flex p-2">
                     <label className="mr-2 p-1 form-label" htmlFor={`source-name-${idx}`}>Source name</label>
                     <input className="text-input p-1"
-                      type="text" id="default-actor"
+                      type="text"
+                      id={`source-name-${idx}`}
                       name={`source-name-${idx}`}
                       onChange={(e) => updateSource({ sourceName: e.target.value } as MappedSource)}
                       value={cloudtrailMapping.sources[idx].sourceName}
                     />
+                  </div>
+
+
+                  <div className="inc-list-header flex">
+                    <div className="flex-1"><label className="title">Related Entities</label></div>
+                    <button className="flex-2 main-btn add-btn" onClick={() => updateSource({ relatedEntityFields: [...source.relatedEntityFields, ""] } as MappedSource)}>+ Add Related Entity</button>
+                  </div>
+
+                  <div className="inc-list p-4 m-2 mt-5">
+
+                    {source.relatedEntityFields.length == 0
+                      ? <p>No specific related entities</p>
+
+                      : source.relatedEntityFields.map((related, idx) => {
+                        const updateEntity = (e: ChangeEvent<HTMLInputElement>) => {
+                          const entities = [...source.relatedEntityFields]
+                          entities[idx] = e.target.value
+                          updateSource({ relatedEntityFields: entities } as MappedSource)
+                        }
+
+                        const removeEntity = () => {
+                          const entities = [...source.relatedEntityFields]
+                          entities.splice(idx, 1)
+                          updateSource({ relatedEntityFields: entities } as MappedSource)
+                        }
+
+                        return (<div className="" key={`default-related-${idx}`}>
+                          <input className="text-input p-1"
+                            type="text"
+                            onChange={updateEntity}
+                            value={source.relatedEntityFields[idx]} />
+
+                          <button className="col-span-1 main-btn remove-btn" onClick={removeEntity}>-</button>
+                        </div>)
+                      })}
+                  </div>
+
+                  <div className="ml-3 pl-1 pb-1 mt-4 flex title-divider">
+                    <h2 className="flex-1">Events</h2>
+                    <button className="main-btn sm flex-2" onClick={addEvent}>+ Add Event</button>
+                  </div>
+
+                  <div className="ml-3 events-holder">
+                    {source.events.map((event, eventIdx) => {
+                      const updateEvent = (event: MappedEvent) => {
+                        source.events[eventIdx] = { ...source.events[eventIdx], ...event }
+                        updateSource({ ...source })
+                      }
+
+                      const removeEvent = () => {
+                        const events = [...source.events]
+                        events.splice(idx, 1)
+                        updateSource({ events: events } as MappedSource)
+                      }
+
+                      return (
+                        <div key={`${idx}-${eventIdx}`} className="pl-5 pb-1 pt-4">
+                          <div className="pb-1 flex title-sub-divider">
+                            <h2 className="flex-1 font-bold">{event.eventName}</h2>
+                            <button className="main-btn sm flex-2" onClick={removeEvent}>- Remove Event</button>
+                          </div>
+
+                          <div className="grid grid-cols-6 pl-2 pt-2">
+                            <label className="mr-2 p-1 form-label" htmlFor={`event-name-${idx}-${eventIdx}`}>Event Name</label>
+                            <input className="col-span-5 text-input p-1"
+                              type="text"
+                              id={`event-name-${idx}-${eventIdx}`}
+                              name={`event-name-${idx}-${eventIdx}`}
+                              onChange={(e) => updateEvent({ eventName: e.target.value } as MappedEvent)}
+                              value={event.eventName}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-6 pl-2 pt-2 pb-2">
+                            <label className="mr-2 p-1 form-label" htmlFor={`actor${idx}-${eventIdx}`}>Specific Actor</label>
+                            <input className="col-span-5 text-input p-1"
+                              type="text"
+                              id={`actor${idx}-${eventIdx}`}
+                              name={`actor${idx}-${eventIdx}`}
+                              onChange={(e) => updateEvent({ actorField: e.target.value } as MappedEvent)}
+                              value={event.actorField}
+                            />
+                          </div>
+
+                          <div className="inc-list-header flex">
+                            <div className="flex-1"><label className="title">Targets</label></div>
+                            <button className="flex-2 main-btn add-btn" onClick={() => updateEvent({ targetFields: [...event.targetFields, ""] } as MappedEvent)}>+ Add Target</button>
+                          </div>
+                          <div className="inc-list p-4 m-2 mt-5">
+
+                            {event.targetFields.length == 0
+                              ? <p>No targets</p>
+
+                              : event.targetFields.map((related, idx) => {
+                                const updateTarget = (e: ChangeEvent<HTMLInputElement>) => {
+                                  const targets = [...event.targetFields]
+                                  targets[idx] = e.target.value
+                                  updateEvent({ targetFields: targets } as MappedEvent)
+                                }
+
+                                const removeTarget = () => {
+                                  const targets = [...event.targetFields]
+                                  targets.splice(idx, 1)
+                                  updateEvent({ targetFields: targets } as MappedEvent)
+                                }
+
+                                return (<div className="" key={`${idx}`}>
+
+                                  <input className="text-input p-1"
+                                    type="text"
+                                    onChange={updateTarget}
+                                    value={event.targetFields[idx]} />
+
+                                  <button className="col-span-1 main-btn remove-btn" onClick={removeTarget}>-</button>
+
+                                </div>)
+                              })}
+                          </div>
+
+                        </div>
+                      )
+
+                    })}
                   </div>
 
                 </div>
@@ -210,6 +347,6 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="footer h-[4dvh] text-xs  p-2 text-center">Aipim - <b>AWS Interfaced Painless Identifier Mapping</b> - Made by @romulets and @kubasobon (Elastic 2025)</footer>
-    </div>
+    </div >
   );
 }

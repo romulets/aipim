@@ -20,5 +20,12 @@ export class MappedSource {
 export class MappedEvent {
     eventName: string = "";
     targetFields: Array<string> = [];
-    actorField?: string;
+    actorField: string = "";
+
+    constructor(eventName?: string) {
+        if (!!eventName) {
+            this.eventName = eventName!
+        }
+        
+    }
 }
