@@ -6,25 +6,17 @@ import (
 	"strings"
 )
 
-var sourceNamePattern = regexp.MustCompile(`// -+ (\w+) Events -+`)
-var addFieldPattern = regexp.MustCompile(`\s*addField\(.+, "(.+)"\)`)
-var eventNamePattern = regexp.MustCompile(`if \(eventName == "(.+)"\)`)
-var actorPattern = regexp.MustCompile(`enrichCtx.actor = field\("(.+)"\)`)
-var fieldPattern = regexp.MustCompile(`field\("(.+)"\)`)
-var forEachPattern = regexp.MustCompile(`f -> addValue\(.+, f\.(.+)\)`)
-
-func (ms *mappedSource) addRelatedEntityField(f string) {
-	ms.relatedEntityFields = append(ms.relatedEntityFields, f)
-}
+var (
+	sourceNamePattern = regexp.MustCompile(`// -+ (\w+) Events -+`)
+	addFieldPattern   = regexp.MustCompile(`\s*addField\(.+, "(.+)"\)`)
+	eventNamePattern  = regexp.MustCompile(`if \(eventName == "(.+)"\)`)
+	actorPattern      = regexp.MustCompile(`enrichCtx.actor = field\("(.+)"\)`)
+	fieldPattern      = regexp.MustCompile(`field\("(.+)"\)`)
+	forEachPattern    = regexp.MustCompile(`f -> addValue\(.+, f\.(.+)\)`)
+)
 
 func (clm *cloudtrailLogMapping) scan(painless string) {
 	var inDefinitions, inSetup bool
-	// var indentLevel int
-	// var sourceScope string
-	// var eventScope string
-
-	// namedSources := map[string]*mappedSource{}
-	// namedEvents := map[string]*mappedEvent{}
 	var source *mappedSource
 	var event *mappedEvent
 
@@ -59,7 +51,6 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 					events:              []mappedEvent{},
 					relatedEntityFields: []string{},
 				}
-				// sourceScope = matches[1]
 				i += 5
 				continue
 			}
@@ -83,7 +74,6 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 					targetFields: []string{},
 					actorField:   nil,
 				}
-				// eventScope = matches[1]
 				i += 1
 				continue
 			}
@@ -137,7 +127,6 @@ func (clm *cloudtrailLogMapping) scan(painless string) {
 		i += 1
 		continue
 	}
-	fmt.Println("DBG")
 }
 
 func mustMatch(pattern *regexp.Regexp, s string, match int) string {
