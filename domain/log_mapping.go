@@ -5,22 +5,22 @@ import (
 	"strings"
 )
 
-type cloudtrailLogMapping struct {
-	defaultRelatedEntities []string
-	defaultActor           string
-	sources                []mappedSource
+type CloudtrailLogMapping struct {
+	DefaultRelatedEntities []string
+	DefaultActor           string
+	Sources                []MappedSource
 }
 
-type mappedSource struct {
-	sourceName          string
-	events              []mappedEvent
-	relatedEntityFields []string
+type MappedSource struct {
+	SourceName          string
+	Events              []MappedEvent
+	RelatedEntityFields []string
 }
 
-type mappedEvent struct {
-	eventName    string
-	targetFields []string
-	actorField   *string
+type MappedEvent struct {
+	EventName    string
+	TargetFields []string
+	ActorField   *string
 }
 
 //go:embed templates/script.painless
@@ -54,11 +54,11 @@ const (
 	contextTarget  = "target"
 )
 
-func (m *cloudtrailLogMapping) toString() string {
-	functions := make([]string, 0, len(m.sources))
-	calls := make([]string, 0, len(m.sources))
+func (m *CloudtrailLogMapping) toString() string {
+	functions := make([]string, 0, len(m.Sources))
+	calls := make([]string, 0, len(m.Sources))
 
-	for _, source := range m.sources {
+	for _, source := range m.Sources {
 		fn, call := source.buildFn()
 		functions = append(functions, fn)
 		calls = append(calls, call)
@@ -66,10 +66,10 @@ func (m *cloudtrailLogMapping) toString() string {
 
 	script := strings.Replace(scriptTemplate, functionDefPH, strings.Join(functions, "\n\n"), 1)
 	script = strings.Replace(script, functionCallPH, strings.Join(calls, "\n"), 1)
-	script = strings.Replace(script, defaultActorPH, m.defaultActor, 1)
+	script = strings.Replace(script, defaultActorPH, m.DefaultActor, 1)
 
-	defaultRelated := make([]string, 0, len(m.defaultRelatedEntities))
-	for _, fieldName := range m.defaultRelatedEntities {
+	defaultRelated := make([]string, 0, len(m.DefaultRelatedEntities))
+	for _, fieldName := range m.DefaultRelatedEntities {
 		defaultRelated = append(defaultRelated, addFieldCall(contextRelated, fieldName))
 	}
 
@@ -79,11 +79,11 @@ func (m *cloudtrailLogMapping) toString() string {
 }
 
 // Returns function definition and call
-func (m *mappedSource) buildFn() (string, string) {
-	function := strings.Replace(functionTemplate, sourceNamePH, m.sourceName, 3)
-	related := make([]string, 0, len(m.relatedEntityFields))
+func (m *MappedSource) buildFn() (string, string) {
+	function := strings.Replace(functionTemplate, sourceNamePH, m.SourceName, 3)
+	related := make([]string, 0, len(m.RelatedEntityFields))
 
-	for idx, fieldName := range m.relatedEntityFields {
+	for idx, fieldName := range m.RelatedEntityFields {
 		ident := ""
 		if idx > 0 {
 			ident = "  "
@@ -91,9 +91,9 @@ func (m *mappedSource) buildFn() (string, string) {
 		related = append(related, ident+addFieldCall(contextRelated, fieldName))
 	}
 
-	events := make([]string, 0, len(m.events))
+	events := make([]string, 0, len(m.Events))
 
-	for _, event := range m.events {
+	for _, event := range m.Events {
 		events = append(events, event.buildIfCase())
 	}
 
@@ -102,16 +102,16 @@ func (m *mappedSource) buildFn() (string, string) {
 	body += strings.ReplaceAll(strings.Join(events, " else "), "\n", "\n  ")
 	function = strings.Replace(function, functionBodyPH, body, 1)
 
-	call := strings.Replace(functionCallTemplate, sourceNamePH, m.sourceName, 1)
+	call := strings.Replace(functionCallTemplate, sourceNamePH, m.SourceName, 1)
 
 	return function, call
 }
 
-func (e *mappedEvent) buildIfCase() string {
-	ifCase := strings.Replace(ifEventTemplate, eventNamePH, e.eventName, 1)
-	targetFields := make([]string, 0, len(e.targetFields))
+func (e *MappedEvent) buildIfCase() string {
+	ifCase := strings.Replace(ifEventTemplate, eventNamePH, e.EventName, 1)
+	targetFields := make([]string, 0, len(e.TargetFields))
 
-	for _, fieldName := range e.targetFields {
+	for _, fieldName := range e.TargetFields {
 		targetFields = append(targetFields, addFieldCall(contextTarget, fieldName))
 	}
 

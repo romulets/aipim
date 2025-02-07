@@ -10,15 +10,15 @@ import (
 func TestToString(t *testing.T) {
 	tcs := map[string]struct {
 		writeGenerated bool
-		in             cloudtrailLogMapping
+		in             CloudtrailLogMapping
 		outFile        string
 	}{
 		"basic": {
 			writeGenerated: true,
 			outFile:        "basic.painless",
-			in: cloudtrailLogMapping{
-				defaultActor: "json.userIdentity.arn",
-				defaultRelatedEntities: []string{
+			in: CloudtrailLogMapping{
+				DefaultActor: "json.userIdentity.arn",
+				DefaultRelatedEntities: []string{
 					"json.userIdentity.accessKeyId",
 					"json.userIdentity.arn",
 					"json.userIdentity.userName",
@@ -27,17 +27,17 @@ func TestToString(t *testing.T) {
 					"json.resources[].ARN",
 				},
 
-				sources: []mappedSource{
+				Sources: []MappedSource{
 					{
-						sourceName: "iam",
-						relatedEntityFields: []string{
+						SourceName: "iam",
+						RelatedEntityFields: []string{
 							"json.requestParameters.userName",
 							"json.requestParameters.roleName",
 						},
-						events: []mappedEvent{
+						Events: []MappedEvent{
 							{
-								eventName: "CreateUser",
-								targetFields: []string{
+								EventName: "CreateUser",
+								TargetFields: []string{
 									"json.requestParameters.userName",
 									"json.requestParameters.roleName",
 								},
@@ -51,9 +51,9 @@ func TestToString(t *testing.T) {
 		"complex": {
 			writeGenerated: true,
 			outFile:        "complex.painless",
-			in: cloudtrailLogMapping{
-				defaultActor: "json.userIdentity.arn",
-				defaultRelatedEntities: []string{
+			in: CloudtrailLogMapping{
+				DefaultActor: "json.userIdentity.arn",
+				DefaultRelatedEntities: []string{
 					"json.userIdentity.accessKeyId",
 					"json.userIdentity.arn",
 					"json.userIdentity.userName",
@@ -62,28 +62,28 @@ func TestToString(t *testing.T) {
 					"json.resources[].ARN",
 				},
 
-				sources: []mappedSource{
+				Sources: []MappedSource{
 					{
-						sourceName: "iam",
-						relatedEntityFields: []string{
+						SourceName: "iam",
+						RelatedEntityFields: []string{
 							"json.requestParameters.userName",
 						},
-						events: []mappedEvent{
+						Events: []MappedEvent{
 							{
-								eventName: "CreateUser",
-								targetFields: []string{
+								EventName: "CreateUser",
+								TargetFields: []string{
 									"json.requestParameters.userName",
 								},
 							},
 							{
-								eventName: "DeleteUser",
-								targetFields: []string{
+								EventName: "DeleteUser",
+								TargetFields: []string{
 									"json.requestParameters.userName",
 								},
 							},
 							{
-								eventName: "CreateRole",
-								targetFields: []string{
+								EventName: "CreateRole",
+								TargetFields: []string{
 									"json.requestParameters.roleName",
 								},
 							},
@@ -91,19 +91,19 @@ func TestToString(t *testing.T) {
 					},
 
 					{
-						sourceName: "ec2",
-						events: []mappedEvent{
+						SourceName: "ec2",
+						Events: []MappedEvent{
 							{
-								eventName: "StartInstances",
-								targetFields: []string{
+								EventName: "StartInstances",
+								TargetFields: []string{
 									"json.requestParameters.roleName",
 									"json.responseElements.instancesSet.items[].instanceId",
 								},
 							},
 
 							{
-								eventName: "StopInstances",
-								targetFields: []string{
+								EventName: "StopInstances",
+								TargetFields: []string{
 									"json.responseElements.instancesSet.items[].instanceId",
 								},
 							},

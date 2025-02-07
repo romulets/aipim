@@ -16,13 +16,13 @@ var testComplexPainless string
 func TestSimpleParser(t *testing.T) {
 	tcs := map[string]struct {
 		input    string
-		expected *cloudtrailLogMapping
+		expected *CloudtrailLogMapping
 	}{
 		"basic": {
 			input: testBasicPainless,
-			expected: &cloudtrailLogMapping{
-				defaultActor: "json.userIdentity.arn",
-				defaultRelatedEntities: []string{
+			expected: &CloudtrailLogMapping{
+				DefaultActor: "json.userIdentity.arn",
+				DefaultRelatedEntities: []string{
 					"json.userIdentity.accessKeyId",
 					"json.userIdentity.arn",
 					"json.userIdentity.userName",
@@ -31,17 +31,17 @@ func TestSimpleParser(t *testing.T) {
 					"json.resources[].ARN",
 				},
 
-				sources: []mappedSource{
+				Sources: []MappedSource{
 					{
-						sourceName: "iam",
-						relatedEntityFields: []string{
+						SourceName: "iam",
+						RelatedEntityFields: []string{
 							"json.requestParameters.userName",
 							"json.requestParameters.roleName",
 						},
-						events: []mappedEvent{
+						Events: []MappedEvent{
 							{
-								eventName: "CreateUser",
-								targetFields: []string{
+								EventName: "CreateUser",
+								TargetFields: []string{
 									"json.requestParameters.userName",
 									"json.requestParameters.roleName",
 								},
@@ -54,9 +54,9 @@ func TestSimpleParser(t *testing.T) {
 
 		"complex": {
 			input: testComplexPainless,
-			expected: &cloudtrailLogMapping{
-				defaultActor: "json.userIdentity.arn",
-				defaultRelatedEntities: []string{
+			expected: &CloudtrailLogMapping{
+				DefaultActor: "json.userIdentity.arn",
+				DefaultRelatedEntities: []string{
 					"json.userIdentity.accessKeyId",
 					"json.userIdentity.arn",
 					"json.userIdentity.userName",
@@ -65,28 +65,28 @@ func TestSimpleParser(t *testing.T) {
 					"json.resources[].ARN",
 				},
 
-				sources: []mappedSource{
+				Sources: []MappedSource{
 					{
-						sourceName: "iam",
-						relatedEntityFields: []string{
+						SourceName: "iam",
+						RelatedEntityFields: []string{
 							"json.requestParameters.userName",
 						},
-						events: []mappedEvent{
+						Events: []MappedEvent{
 							{
-								eventName: "CreateUser",
-								targetFields: []string{
+								EventName: "CreateUser",
+								TargetFields: []string{
 									"json.requestParameters.userName",
 								},
 							},
 							{
-								eventName: "DeleteUser",
-								targetFields: []string{
+								EventName: "DeleteUser",
+								TargetFields: []string{
 									"json.requestParameters.userName",
 								},
 							},
 							{
-								eventName: "CreateRole",
-								targetFields: []string{
+								EventName: "CreateRole",
+								TargetFields: []string{
 									"json.requestParameters.roleName",
 								},
 							},
@@ -94,19 +94,19 @@ func TestSimpleParser(t *testing.T) {
 					},
 
 					{
-						sourceName: "ec2",
-						events: []mappedEvent{
+						SourceName: "ec2",
+						Events: []MappedEvent{
 							{
-								eventName: "StartInstances",
-								targetFields: []string{
+								EventName: "StartInstances",
+								TargetFields: []string{
 									"json.requestParameters.roleName",
 									"json.responseElements.instancesSet.items[].instanceId",
 								},
 							},
 
 							{
-								eventName: "StopInstances",
-								targetFields: []string{
+								EventName: "StopInstances",
+								TargetFields: []string{
 									"json.responseElements.instancesSet.items[].instanceId",
 								},
 							},
@@ -119,7 +119,7 @@ func TestSimpleParser(t *testing.T) {
 
 	for name, tc := range tcs {
 		t.Run(name, func(t *testing.T) {
-			clm := &cloudtrailLogMapping{}
+			clm := &CloudtrailLogMapping{}
 			clm.scan(tc.input)
 
 			got := clm.toString()
