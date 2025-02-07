@@ -6,21 +6,21 @@ import (
 )
 
 type CloudtrailLogMapping struct {
-	DefaultRelatedEntities []string
-	DefaultActor           string
-	Sources                []MappedSource
+	DefaultRelatedEntities []string       `json:"defaultRelatedEntities"`
+	DefaultActor           string         `json:"defaultActor"`
+	Sources                []MappedSource `json:"sources"`
 }
 
 type MappedSource struct {
-	SourceName          string
-	Events              []MappedEvent
-	RelatedEntityFields []string
+	SourceName          string        `json:"sourceName"`
+	Events              []MappedEvent `json:"events"`
+	RelatedEntityFields []string      `json:"relatedEntityFields"`
 }
 
 type MappedEvent struct {
-	EventName    string
-	TargetFields []string
-	ActorField   *string
+	EventName    string   `json:"eventName"`
+	TargetFields []string `json:"targetFields"`
+	ActorField   *string  `json:"actorFields"`
 }
 
 //go:embed templates/script.painless

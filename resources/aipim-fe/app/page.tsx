@@ -5,6 +5,8 @@ import Image from "next/image";
 import CodeEditor from '@uiw/react-textarea-code-editor';
 import { CloudtrailLogMapping, MappedSource, MappedEvent } from "./domain"
 
+const serverUrl = ""
+
 class Toggles {
   default: boolean = false;
   sources: number = -1;
@@ -12,8 +14,8 @@ class Toggles {
 
 export default function Home() {
   const [cloudtrailMapping, setMapping] = useState(new CloudtrailLogMapping())
-
   const [toggles, setToggles] = useState(new Toggles());
+  const [painlessCode, setPainlessCode] = useState("");
 
   const toggleDefault = useCallback(() => {
     setToggles(() => ({ default: !toggles.default, sources: -1 } as Toggles))
@@ -32,7 +34,59 @@ export default function Home() {
   const arrowClassName = ((open: boolean) => open ? "collapse-arrow-open" : "collapse-arrow-closed")
   const collapseBody = ((open: boolean) => open ? "collapse-body-open" : "collapse-body-closed")
 
-  const updateCloudtrailMapping = ((newMapping: CloudtrailLogMapping) => setMapping({ ...cloudtrailMapping, ...newMapping }))
+
+  let toPainlessAbort: AbortController | null = null;
+  const updateCloudtrailMapping = (newMapping: CloudtrailLogMapping) => {
+    if (toPainlessAbort != null) {
+      toPainlessAbort!.abort()
+    }
+
+    toPainlessAbort = new AbortController()
+
+    const mapping = { ...cloudtrailMapping, ...newMapping }
+    setMapping(mapping);
+
+    (async () => {
+      const resp = await fetch(`${serverUrl}/api/mapping/to-painless`, {
+        method: 'POST',
+        mode: "cors",
+        body: JSON.stringify(mapping),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: toPainlessAbort!.signal
+      })
+
+      const painless = await resp.text();
+      setPainlessCode(painless)
+
+      toPainlessAbort = null
+    })()
+  }
+
+  let fromPainlessAbort: AbortController | null = null;
+  const getMappingBack = (code: string) => {
+    if (fromPainlessAbort != null) {
+      fromPainlessAbort!.abort()
+    }
+
+    fromPainlessAbort = new AbortController()
+    setPainlessCode(code);
+
+    (async () => {
+      const resp = await fetch(`${serverUrl}/api/mapping/from-painless`, {
+        method: 'POST',
+        mode: "cors",
+        body: code,
+        signal: fromPainlessAbort!.signal
+      })
+
+      const mapping = await resp.json();
+      setMapping(mapping as CloudtrailLogMapping)
+
+      fromPainlessAbort = null
+    })()
+  }
 
   const addEventSource = () => {
     const idx = cloudtrailMapping.sources.length // no need to decrement because we are increasing anyway
@@ -314,28 +368,11 @@ export default function Home() {
 
         </section>
 
-
-        {/* CODE EDITOR */}
-        {/* <CodeEditor className="flex-1"
-          value={JSON.stringify(cloudtrailMapping, null, 2)}
-          // language="dart"
-          language="json"
-          placeholder="// code here"
-          // onChange={(evn) => setCode(evn.target.value)}
-          padding={15}
-          data-color-mode="dark"
-          style={{
-            fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
-            overflowY: 'scroll'
-          }}
-        /> */}
-
         <CodeEditor className="flex-1"
-          // value={JSON.stringify(cloudtrailMapping, null, 2)}
+          value={painlessCode}
           language="dart"
-          // language="json"
           placeholder="// code here"
-          // onChange={(evn) => setCode(evn.target.value)}
+          onChange={(e) => getMappingBack(e.target.value)}
           padding={15}
           data-color-mode="dark"
           style={{

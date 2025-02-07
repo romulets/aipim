@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
@@ -49,7 +50,10 @@ func fromPainless(c *gin.Context) {
 		)
 		return
 	}
-	var clm domain.CloudtrailLogMapping
+	clm := domain.CloudtrailLogMapping{
+		DefaultRelatedEntities: []string{},
+		Sources:                []domain.MappedSource{},
+	}
 	if err := clm.Scan(string(raw)); err != nil {
 		c.Data(
 			http.StatusInternalServerError, "text/plain",
@@ -63,8 +67,28 @@ func fromPainless(c *gin.Context) {
 
 func runServe(cmd *cobra.Command, args []string) {
 	router := gin.Default()
-	router.GET("/", healthcheck)
+	router.Use(corsMiddleware())
+
+	router.Use(static.Serve("/", static.LocalFile("./static", false)))
+
+	router.GET("/api/health", healthcheck)
 	router.POST("/api/mapping/to-painless", toPainless)
 	router.POST("/api/mapping/from-painless", fromPainless)
 	router.Run(fmt.Sprintf(":%d", port))
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
