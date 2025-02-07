@@ -117,7 +117,7 @@ func TestToString(t *testing.T) {
 	for name, tc := range tcs {
 		t.Run(name, func(t *testing.T) {
 			if tc.writeGenerated {
-				os.WriteFile("./testdata/tostring_output/generated_"+tc.outFile, []byte(tc.in.toString()), 0o644)
+				os.WriteFile("./testdata/tostring_output/generated_"+tc.outFile, []byte(tc.in.ToString()), 0o644)
 			}
 
 			data, err := os.ReadFile("./testdata/tostring_output/" + tc.outFile)
@@ -125,7 +125,7 @@ func TestToString(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			got := tc.in.toString()
+			got := tc.in.ToString()
 			want := string(data)
 
 			if got != want {

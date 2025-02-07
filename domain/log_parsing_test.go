@@ -120,10 +120,13 @@ func TestSimpleParser(t *testing.T) {
 	for name, tc := range tcs {
 		t.Run(name, func(t *testing.T) {
 			clm := &CloudtrailLogMapping{}
-			clm.scan(tc.input)
+			err := clm.Scan(tc.input)
+			if err != nil {
+				t.Errorf("Expected no errors, got: %s\n", err)
+			}
 
-			got := clm.toString()
-			want := tc.expected.toString()
+			got := clm.ToString()
+			want := tc.expected.ToString()
 
 			if got != want {
 				t.Errorf("Result not as expected:\n%v", diff.LineDiff(got, want))

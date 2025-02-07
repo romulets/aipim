@@ -6,6 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
+
+	"github.com/romulets/aipim/domain"
 )
 
 var serveCmd = &cobra.Command{
@@ -25,11 +27,36 @@ func healthcheck(c *gin.Context) {
 }
 
 func toPainless(c *gin.Context) {
+	var clm domain.CloudtrailLogMapping
 
+	if err := c.BindJSON(&clm); err != nil {
+		c.Data(
+			http.StatusInternalServerError, "text/plain",
+			[]byte(fmt.Sprintf("Error parsing JSON: %s", err)),
+		)
+		return
+	}
+
+	c.Data(http.StatusOK, "text/plain", []byte(clm.ToString()))
 }
 
 func fromPainless(c *gin.Context) {
+	raw, err := c.GetRawData()
+	if err != nil {
+		c.Data(
+			http.StatusInternalServerError, "text/plain",
+			[]byte(fmt.Sprintf("Error reading Painless from body: %s", err)),
+		)
+	}
+	var clm domain.CloudtrailLogMapping
+	if err := clm.Scan(string(raw)); err != nil {
+		c.Data(
+			http.StatusInternalServerError, "text/plain",
+			[]byte(fmt.Sprintf("Error parsing Painless: %s", err)),
+		)
+	}
 
+	c.JSON(http.StatusOK, clm)
 }
 
 func runServe(cmd *cobra.Command, args []string) {

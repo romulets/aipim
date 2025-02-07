@@ -54,7 +54,7 @@ const (
 	contextTarget  = "target"
 )
 
-func (m *CloudtrailLogMapping) toString() string {
+func (m *CloudtrailLogMapping) ToString() string {
 	functions := make([]string, 0, len(m.Sources))
 	calls := make([]string, 0, len(m.Sources))
 

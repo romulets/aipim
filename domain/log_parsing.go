@@ -15,7 +15,7 @@ var (
 	forEachPattern    = regexp.MustCompile(`f -> addValue\(.+, f\.(.+)\)\);`)
 )
 
-func (clm *CloudtrailLogMapping) scan(painless string) {
+func (clm *CloudtrailLogMapping) Scan(painless string) error {
 	var inDefinitions, inSetup bool
 	var source *MappedSource
 	var event *MappedEvent
@@ -45,7 +45,10 @@ func (clm *CloudtrailLogMapping) scan(painless string) {
 
 		if inDefinitions {
 			if strings.Contains(line, " Events -") {
-				x := mustMatch(sourceNamePattern, line, 1)
+				x, err := mustMatch(sourceNamePattern, line, 1)
+				if err != nil {
+					return err
+				}
 				source = &MappedSource{
 					SourceName:          x,
 					Events:              []MappedEvent{},
@@ -56,7 +59,10 @@ func (clm *CloudtrailLogMapping) scan(painless string) {
 			}
 			if strings.HasPrefix(line, "  addField") {
 				// parse line and add to related on source-lvl
-				x := mustMatch(addFieldPattern, line, 1)
+				x, err := mustMatch(addFieldPattern, line, 1)
+				if err != nil {
+					return err
+				}
 				source.RelatedEntityFields = append(source.RelatedEntityFields, x)
 				i += 1
 				continue
@@ -68,7 +74,10 @@ func (clm *CloudtrailLogMapping) scan(painless string) {
 			}
 			if strings.Contains(line, "eventName ==") {
 				// go to eventScope
-				x := mustMatch(eventNamePattern, line, 1)
+				x, err := mustMatch(eventNamePattern, line, 1)
+				if err != nil {
+					return err
+				}
 				event = &MappedEvent{
 					EventName:    x,
 					TargetFields: []string{},
@@ -79,14 +88,23 @@ func (clm *CloudtrailLogMapping) scan(painless string) {
 			}
 			if strings.HasPrefix(line, "    addField") {
 				// parse line and add to related on event-lvl
-				x := mustMatch(addFieldPattern, line, 1)
+				x, err := mustMatch(addFieldPattern, line, 1)
+				if err != nil {
+					return err
+				}
 				event.TargetFields = append(event.TargetFields, x)
 				i += 1
 				continue
 			}
 			if strings.Contains(line, "ArrayList()") {
-				prefix := mustMatch(fieldPattern, line, 1)
-				suffix := mustMatch(forEachPattern, lines[i+1], 1)
+				prefix, err := mustMatch(fieldPattern, line, 1)
+				if err != nil {
+					return err
+				}
+				suffix, err := mustMatch(forEachPattern, lines[i+1], 1)
+				if err != nil {
+					return err
+				}
 				event.TargetFields = append(
 					event.TargetFields,
 					fmt.Sprintf("%s[].%s", prefix, suffix),
@@ -103,19 +121,32 @@ func (clm *CloudtrailLogMapping) scan(painless string) {
 			}
 		} else if inSetup {
 			if strings.HasPrefix(line, "enrichCtx.actor =") {
-				clm.DefaultActor = mustMatch(actorPattern, line, 1)
+				var err error
+				clm.DefaultActor, err = mustMatch(actorPattern, line, 1)
+				if err != nil {
+					return err
+				}
 				i += 1
 				continue
 			}
 			if strings.HasPrefix(line, "addField(") {
-				x := mustMatch(addFieldPattern, line, 1)
+				x, err := mustMatch(addFieldPattern, line, 1)
+				if err != nil {
+					return err
+				}
 				clm.DefaultRelatedEntities = append(clm.DefaultRelatedEntities, x)
 				i += 1
 				continue
 			}
 			if strings.Contains(line, "ArrayList()") {
-				prefix := mustMatch(fieldPattern, line, 1)
-				suffix := mustMatch(forEachPattern, lines[i+1], 1)
+				prefix, err := mustMatch(fieldPattern, line, 1)
+				if err != nil {
+					return err
+				}
+				suffix, err := mustMatch(forEachPattern, lines[i+1], 1)
+				if err != nil {
+					return err
+				}
 				clm.DefaultRelatedEntities = append(
 					clm.DefaultRelatedEntities,
 					fmt.Sprintf("%s[].%s", prefix, suffix),
@@ -127,15 +158,16 @@ func (clm *CloudtrailLogMapping) scan(painless string) {
 		i += 1
 		continue
 	}
+	return nil
 }
 
-func mustMatch(pattern *regexp.Regexp, s string, match int) string {
+func mustMatch(pattern *regexp.Regexp, s string, match int) (string, error) {
 	matches := pattern.FindStringSubmatch(s)
 	if len(matches) <= match {
-		panic(fmt.Sprintf(
+		return "", fmt.Errorf(
 			"Could not match %q with %q (group %d)",
 			s, pattern, match,
-		))
+		)
 	}
-	return matches[match]
+	return matches[match], nil
 }
