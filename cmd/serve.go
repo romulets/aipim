@@ -47,6 +47,7 @@ func fromPainless(c *gin.Context) {
 			http.StatusInternalServerError, "text/plain",
 			[]byte(fmt.Sprintf("Error reading Painless from body: %s", err)),
 		)
+		return
 	}
 	var clm domain.CloudtrailLogMapping
 	if err := clm.Scan(string(raw)); err != nil {
@@ -54,6 +55,7 @@ func fromPainless(c *gin.Context) {
 			http.StatusInternalServerError, "text/plain",
 			[]byte(fmt.Sprintf("Error parsing Painless: %s", err)),
 		)
+		return
 	}
 
 	c.JSON(http.StatusOK, clm)
