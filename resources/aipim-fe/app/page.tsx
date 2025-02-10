@@ -5,6 +5,7 @@ import Image from "next/image";
 import CodeEditor from '@uiw/react-textarea-code-editor';
 import { CloudtrailLogMapping, MappedSource, MappedEvent } from "./domain"
 
+// const serverUrl = "http://localhost:8777"
 const serverUrl = ""
 
 class Toggles {
@@ -12,8 +13,16 @@ class Toggles {
   sources: number = -1;
 }
 
+class Stats {
+  sources: number = 0
+  events: number = 0
+  targets: number = 0
+  relatedEntities: number = 0
+}
+
 export default function Home() {
   const [cloudtrailMapping, setMapping] = useState(new CloudtrailLogMapping())
+  const [stats, setStats] = useState(new Stats())
   const [toggles, setToggles] = useState(new Toggles());
   const [painlessCode, setPainlessCode] = useState("");
 
@@ -21,6 +30,20 @@ export default function Home() {
     setToggles(() => ({ default: !toggles.default, sources: -1 } as Toggles))
   }, [toggles])
 
+  const updateStats = async (mapping: CloudtrailLogMapping) => {
+    const sts = new Stats()
+    sts.relatedEntities += mapping.defaultRelatedEntities.length
+    sts.sources = mapping.sources.length
+    mapping.sources.forEach(source => {
+      sts.events += source.events.length
+      sts.relatedEntities += source.relatedEntityFields.length
+      source.events.forEach(event => {
+        sts.targets += event.targetFields.length
+      })
+    })
+
+    setStats(sts)
+  }
 
   const toggleSource = (idx: number) => () => {
     if (toggles.sources == idx) {
@@ -34,7 +57,6 @@ export default function Home() {
   const arrowClassName = ((open: boolean) => open ? "collapse-arrow-open" : "collapse-arrow-closed")
   const collapseBody = ((open: boolean) => open ? "collapse-body-open" : "collapse-body-closed")
 
-
   let toPainlessAbort: AbortController | null = null;
   const updateCloudtrailMapping = (newMapping: CloudtrailLogMapping) => {
     if (toPainlessAbort != null) {
@@ -45,6 +67,7 @@ export default function Home() {
 
     const mapping = { ...cloudtrailMapping, ...newMapping }
     setMapping(mapping);
+    updateStats(mapping);
 
     (async () => {
       const resp = await fetch(`${serverUrl}/api/mapping/to-painless`, {
@@ -81,8 +104,15 @@ export default function Home() {
         signal: fromPainlessAbort!.signal
       })
 
+      if (resp.status != 200) {
+        const err = await resp.text()
+        alert(err)
+        return
+      }
+
       const mapping = await resp.json();
       setMapping(mapping as CloudtrailLogMapping)
+      updateStats(mapping);
 
       fromPainlessAbort = null
     })()
@@ -98,15 +128,28 @@ export default function Home() {
     <div className="h-screen">
       {/* HEADER */}
       <div className="header flex h-[7dvh] p-2">
-        <Image
-          className="w-8 flex-none"
-          src="/aipim-background.svg"
-          alt="Aipim Logo"
-          width={30}
-          height={30}
-          priority />
+        <div className="flex flex-1">
+          <Image
+            className="w-8 flex-none"
+            src="/aipim-background.svg"
+            alt="Aipim Logo"
+            width={30}
+            height={30}
+            priority />
 
-        <h1 className="flex-none p-2">Aipim</h1>
+          <h1 className="flex-none p-2 mt-1"><b>Aipim</b></h1>
+        </div>
+
+        <div className="flex flex-2 mt-1">
+          <b className="p-1 pt-2"> Sources:</b> 
+          <span className="p-1 pt-2">{stats.sources}</span>
+          <b className="p-1 pt-2"> Events:</b> 
+          <span className="p-1 pt-2">{stats.events}</span>
+          <b className="p-1 pt-2"> Related Entities:</b> 
+          <span className="p-1 pt-2">{stats.relatedEntities}</span>
+          <b className="p-1 pt-2"> Targets:</b> 
+          <span className="p-1 pt-2">{stats.targets}</span>
+        </div>
       </div>
 
       {/* MAIN */}

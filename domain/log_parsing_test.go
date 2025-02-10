@@ -134,3 +134,14 @@ func TestSimpleParser(t *testing.T) {
 		})
 	}
 }
+
+//go:embed testdata/tostring_output/reverse.painless
+var testReversePainless string
+
+func TestItParses(t *testing.T) {
+	clm := &CloudtrailLogMapping{}
+	err := clm.Scan(testReversePainless)
+	if err != nil {
+		t.Errorf("Expected no errors, got: %s\n", err)
+	}
+}
